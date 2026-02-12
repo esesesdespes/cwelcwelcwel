@@ -3,157 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrandRP | Ultra Dashboard</title>
+    <title>GrandRP | Live Finder PRO</title>
     <style>
         :root {
-            --bg-body: #050a14;      /* Bardzo ciemny granat */
-            --bg-card: #0d1626;      /* Ciemny niebieski kafelków */
-            --primary-red: #e74c3c;  /* Czerwień akcentów */
-            --accent-blue: #3498db;  /* Jasny niebieski */
-            --text-main: #ffffff;
-            --text-dim: #94a3b8;
+            --bg: #080808;
+            --card: #121212;
+            --accent: #ff3e3e; /* Krwista czerwień */
+            --text: #ffffff;
+            --text-dim: #777;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             padding: 20px;
-            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Główny kontener na całą stronę */
-        .dashboard {
+        /* Dashboard na całą stronę */
+        .app-container {
             width: 100%;
-            max-width: 100%; 
+            max-width: 1800px;
             margin: 0 auto;
         }
 
         header {
-            text-align: center;
-            padding: 20px 0 40px;
-            border-bottom: 2px solid var(--bg-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #222;
             margin-bottom: 30px;
         }
 
         h1 {
-            font-size: 2.5rem;
-            letter-spacing: 2px;
-            color: var(--primary-red);
+            font-size: 2rem;
+            color: var(--accent);
             text-transform: uppercase;
-            text-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+            letter-spacing: 2px;
         }
 
-        /* Panel sterowania w jednej linii */
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
+        /* Panel sterowania */
+        .search-bar {
+            display: grid;
+            grid-template-columns: 120px 1fr 1fr 200px;
             gap: 15px;
-            background: var(--bg-card);
+            background: var(--card);
             padding: 25px;
             border-radius: 15px;
+            border: 1px solid #222;
             margin-bottom: 30px;
-            align-items: center;
-            border: 1px solid rgba(52, 152, 219, 0.2);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .input-group {
-            flex: 1;
-            min-width: 200px;
+        .input-field {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 8px;
         }
 
         label {
-            font-size: 0.8rem;
-            color: var(--accent-blue);
-            font-weight: bold;
+            font-size: 0.75rem;
             text-transform: uppercase;
+            color: var(--accent);
+            font-weight: bold;
         }
 
         input {
-            background: #1a273d;
-            border: 1px solid #2d3e5a;
-            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 14px;
             border-radius: 8px;
             color: white;
+            font-size: 1rem;
             outline: none;
-            transition: 0.3s;
+            transition: 0.2s;
         }
 
         input:focus {
-            border-color: var(--primary-red);
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.2);
+            border-color: var(--accent);
+            background: #222;
         }
 
-        .btn-box {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        button {
-            padding: 12px 25px;
-            border-radius: 8px;
+        .btn-refresh {
+            background: var(--accent);
+            color: white;
             border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            text-transform: uppercase;
-        }
-
-        .btn-search { background: var(--primary-red); color: white; }
-        .btn-list { background: var(--accent-blue); color: white; }
-        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
-
-        /* Statystyki */
-        .status-bar {
-            margin-bottom: 20px;
-            padding: 10px;
-            font-size: 1.1rem;
-            color: var(--text-dim);
-        }
-
-        /* Siatka kafelków na całą szerokość */
-        #results {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Mniejsze kafelki */
-            gap: 12px;
-        }
-
-        .player-tile {
-            background: var(--bg-card);
-            padding: 12px 15px;
             border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            border-left: 4px solid var(--accent-blue);
-            transition: 0.2s;
-            animation: fadeIn 0.4s ease;
+            font-weight: bold;
+            cursor: pointer;
+            height: 48px;
+            margin-top: auto;
+            transition: 0.3s;
         }
 
-        .player-tile:hover {
-            border-left-color: var(--primary-red);
-            background: #162238;
+        .btn-refresh:hover {
+            filter: brightness(1.2);
             transform: scale(1.02);
         }
 
-        .p-id {
-            font-size: 0.8rem;
-            color: var(--primary-red);
-            font-weight: bold;
-            margin-bottom: 4px;
+        /* Siatka kafelków */
+        #playerGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Duże kafelki */
+            gap: 20px;
         }
 
-        .p-name {
-            font-size: 0.95rem; /* Mniejszy, czytelny nick */
-            color: #ffffff;
+        .player-tile {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #222;
+            transition: 0.3s;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .player-tile:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            background: #181818;
+        }
+
+        .id-box {
+            font-size: 1.8rem; /* Wielkie ID */
+            font-weight: 900;
+            color: var(--accent);
+            margin-right: 20px;
+            padding-right: 20px;
+            border-right: 2px solid #222;
+            min-width: 80px;
+        }
+
+        .name-box {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .count-info {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text-dim);
         }
 
         @keyframes fadeIn {
@@ -161,112 +162,103 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsywność */
-        @media (max-width: 768px) {
-            .controls { flex-direction: column; align-items: stretch; }
+        @media (max-width: 1000px) {
+            .search-bar { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
+<div class="app-container">
     <header>
-        <h1>GrandRP Live Dashboard</h1>
+        <h1>GrandRP Finder <span style="color:white; font-size: 0.5em; vertical-align: middle;">LIVE</span></h1>
+        <div id="updateTime" style="color: #444; font-size: 0.9rem;"></div>
     </header>
 
-    <div class="controls">
-        <div class="input-group">
-            <label>Server ID</label>
+    <div class="search-bar">
+        <div class="input-field">
+            <label>Server</label>
             <input type="text" id="srvId" value="8rml8v">
         </div>
-        <div class="input-group">
-            <label>Szukaj po ID</label>
-            <input type="number" id="searchId" placeholder="np. 123">
+        <div class="input-field">
+            <label>Szukaj ID (Live)</label>
+            <input type="number" id="searchId" placeholder="Wpisz ID..." oninput="filterPlayers()">
         </div>
-        <div class="input-group">
-            <label>Szukaj po Nicku</label>
-            <input type="text" id="searchNick" placeholder="np. Kowalski">
+        <div class="input-field">
+            <label>Szukaj Nicku (Live)</label>
+            <input type="text" id="searchNick" placeholder="Wpisz Nick..." oninput="filterPlayers()">
         </div>
-        <div class="btn-box">
-            <button class="btn-search" onclick="performSearch()">Szukaj</button>
-            <button class="btn-list" onclick="toggleFullList()">Lista Online</button>
-        </div>
+        <button class="btn-refresh" onclick="loadData()">Odśwież Dane</button>
     </div>
 
-    <div id="status" class="status-bar"></div>
-    <div id="results"></div>
+    <div id="count" class="count-info"></div>
+    <div id="playerGrid">
+        </div>
 </div>
 
 <script>
-    let isListOpen = false;
+    let allPlayers = []; // Tu trzymamy pobranych graczy
 
-    async function getPlayers() {
+    // Funkcja pobierająca dane (wywoływana raz lub po kliknięciu odśwież)
+    async function loadData() {
         const sID = document.getElementById('srvId').value;
-        const status = document.getElementById('status');
+        const grid = document.getElementById('playerGrid');
+        const countBox = document.getElementById('count');
+        
+        grid.innerHTML = "<p style='color:var(--accent)'>Pobieranie listy graczy...</p>";
+        
         try {
             const res = await fetch(`https://corsproxy.io/?https://servers-frontend.fivem.net/api/servers/single/${sID}`);
             const data = await res.json();
-            return data.Data.players;
+            allPlayers = data.Data.players;
+            
+            // Sortowanie po ID
+            allPlayers.sort((a,b) => a.id - b.id);
+            
+            filterPlayers(); // Od razu filtrujemy (pokaże wszystkich jeśli pola są puste)
+            
+            const now = new Date();
+            document.getElementById('updateTime').innerText = "Ostatnia aktualizacja: " + now.toLocaleTimeString();
         } catch (e) {
-            status.innerHTML = "<span style='color:var(--primary-red)'>Błąd: Nie można pobrać danych z serwera.</span>";
-            return [];
+            grid.innerHTML = "<p style='color:red'>Błąd połączenia. Sprawdź Server ID.</p>";
         }
     }
 
-    async function performSearch() {
-        const idQuery = document.getElementById('searchId').value;
-        const nickQuery = document.getElementById('searchNick').value.toLowerCase();
-        const results = document.getElementById('results');
-        const status = document.getElementById('status');
+    // Funkcja filtrująca "w locie"
+    function filterPlayers() {
+        const idVal = document.getElementById('searchId').value;
+        const nickVal = document.getElementById('searchNick').value.toLowerCase();
+        const grid = document.getElementById('playerGrid');
+        const countBox = document.getElementById('count');
 
-        if(!idQuery && !nickQuery) return alert("Wpisz ID lub Nick!");
-
-        results.innerHTML = "Szukanie...";
-        const players = await getPlayers();
-        
-        // Filtrowanie
-        const filtered = players.filter(p => {
-            const matchId = idQuery ? p.id == idQuery : false;
-            const matchNick = nickQuery ? p.name.toLowerCase().includes(nickQuery) : false;
-            return matchId || matchNick;
+        const filtered = allPlayers.filter(p => {
+            const matchId = idVal ? p.id == idVal : true;
+            const matchNick = nickVal ? p.name.toLowerCase().includes(nickNick) : true;
+            
+            // Logika: Jeśli oba pola puste - pokazuj wszystkich. 
+            // Jeśli wpisane ID - filtruj po ID. Jeśli wpisany Nick - filtruj po Nicku.
+            const nMatch = p.name.toLowerCase().includes(nickVal);
+            const iMatch = idVal ? (p.id.toString().startsWith(idVal)) : true;
+            
+            return nMatch && iMatch;
         });
 
-        status.innerHTML = `Znaleziono: ${filtered.length}`;
-        renderTiles(filtered);
-    }
+        countBox.innerHTML = `Widocznych graczy: <strong style="color:white">${filtered.length}</strong> / ${allPlayers.length}`;
 
-    async function toggleFullList() {
-        const results = document.getElementById('results');
-        const status = document.getElementById('status');
-        
-        if(isListOpen) {
-            results.innerHTML = "";
-            status.innerHTML = "";
-            isListOpen = false;
-            return;
-        }
-
-        results.innerHTML = "Wczytywanie...";
-        const players = await getPlayers();
-        players.sort((a,b) => a.id - b.id);
-        
-        status.innerHTML = `Gracze Online: <strong>${players.length}</strong>`;
-        renderTiles(players);
-        isListOpen = true;
-    }
-
-    function renderTiles(data) {
-        const results = document.getElementById('results');
         let html = "";
-        data.forEach(p => {
+        filtered.forEach(p => {
             html += `
                 <div class="player-tile">
-                    <span class="p-id">ID: ${p.id}</span>
-                    <span class="p-name" title="${p.name}">${p.name}</span>
+                    <div class="id-box">${p.id}</div>
+                    <div class="name-box" title="${p.name}">${p.name}</div>
                 </div>`;
         });
-        results.innerHTML = html || "<p>Brak wyników.</p>";
+        
+        grid.innerHTML = html || "<p>Brak pasujących graczy online.</p>";
     }
+
+    // Załaduj dane przy starcie strony
+    loadData();
 </script>
 
 </body>

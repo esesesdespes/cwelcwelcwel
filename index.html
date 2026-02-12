@@ -5,13 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrandRP Finder | by kejcpi</title>
     <style>
+        /* --- PALETA KOLORÓW (CZERWONY) --- */
         :root {
-            --bg: #050505;
-            --panel: #0f0f0f;
-            --accent: #00ffcc; /* Ostry Cyjan */
-            --accent-glow: rgba(0, 255, 204, 0.3);
+            --bg: #050505;             /* Głęboka czerń */
+            --panel: #111111;          /* Ciemny panel */
+            --accent: #ff3b3b;         /* GrandRP Red (Krwista czerwień) */
+            --accent-glow: rgba(255, 59, 59, 0.4); /* Czerwona poświata */
             --text: #ffffff;
             --border: #333;
+        }
+
+        /* --- USUNIĘCIE SPINNERA (BIAŁE STRZAŁKI W INPUT NUMBER) --- */
+        /* Dla Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Dla Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,26 +58,25 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin: 0;
-            background: linear-gradient(to bottom, #ffffff, #888888);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--accent); /* CZERWONY KOLOR */
+            text-shadow: 0 0 20px var(--accent-glow); /* CZERWONA POŚWIATA */
         }
 
         .signature {
             font-size: 1rem;
-            color: var(--accent);
+            color: var(--accent); /* CZERWONY PODPIS */
             letter-spacing: 5px;
             text-transform: uppercase;
             font-weight: bold;
             margin-top: 5px;
             position: relative;
             display: inline-block;
-            text-shadow: 0 0 10px var(--accent-glow);
+            opacity: 0.8;
         }
 
         .signature::before, .signature::after {
             content: "—";
-            color: #444;
+            color: #555;
             margin: 0 10px;
         }
 
@@ -122,7 +134,6 @@
             color: var(--accent);
             font-weight: bold;
             text-transform: uppercase;
-            text-shadow: 0 0 5px var(--accent-glow);
         }
 
         input, select {
@@ -141,11 +152,11 @@
             box-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* --- PRZYCISKI (STYL POPRZEDNI) --- */
+        /* --- PRZYCISKI --- */
         button {
             padding: 12px 25px;
-            background: transparent; /* Przezroczyste tło */
-            border: 1px solid var(--accent); /* Kolorowa ramka */
+            background: transparent;
+            border: 1px solid var(--accent);
             color: var(--accent);
             border-radius: 4px;
             cursor: pointer;
@@ -154,7 +165,6 @@
             font-size: 0.9rem;
             height: 44px;
             transition: 0.3s;
-            box-shadow: 0 0 5px var(--accent-glow);
             min-width: 120px;
         }
 
@@ -199,7 +209,7 @@
 
         .card:hover {
             border-color: var(--accent);
-            background: #121212;
+            background: #181818;
             transform: translateY(-2px);
             box-shadow: 0 0 10px var(--accent-glow);
         }
@@ -215,7 +225,6 @@
             min-width: 60px;
             text-align: center;
             font-family: monospace;
-            box-shadow: 0 0 5px var(--accent-glow);
         }
 
         .nick-txt {
@@ -288,7 +297,6 @@
         const btn = document.getElementById('refreshBtn');
         const timeSpan = document.getElementById('time');
         
-        // Zmieniamy tekst przycisku tylko przy ręcznym odświeżaniu
         if (!isAuto) {
             btn.innerText = "...";
         }
@@ -328,7 +336,6 @@
             return mId && mNick;
         });
 
-        // WYŚWIETLANIE TYLKO LICZBY GRACZY ONLINE
         counter.innerHTML = `Online: <strong style="color:var(--accent)">${filtered.length}</strong>`;
 
         if(!showList) {
@@ -365,7 +372,7 @@
     // Start
     getData(false);
 
-    // AUTOMATYCZNE ODŚWIEŻANIE CO 15 SEKUND (15000 ms)
+    // AUTOMATYCZNE ODŚWIEŻANIE CO 15 SEKUND
     setInterval(() => {
         getData(true);
     }, 15000);

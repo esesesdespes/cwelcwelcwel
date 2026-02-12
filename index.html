@@ -6,56 +6,61 @@
     <title>GrandRP Finder</title>
     <style>
         :root {
-            --bg-color: #050505;       /* Głęboka czerń */
-            --panel-color: #111111;    /* Ciemny szary */
-            --accent-color: #ff3b3b;   /* GrandRP Red */
-            --text-color: #ffffff;
-            --border-color: #222222;
+            --bg: #050505;             /* Totalna czerń */
+            --card-bg: #0a0a0a;        /* Prawie czerń */
+            --neon: #b026ff;           /* Neonowy fiolet */
+            --neon-glow: rgba(176, 38, 255, 0.4); /* Poświata */
+            --text: #ffffff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg);
+            color: var(--text);
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
         .wrapper {
-            max-width: 1400px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 1200px;
         }
 
         /* NAGŁÓWEK */
         header {
             text-align: center;
-            padding: 30px 0;
+            margin-bottom: 20px;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            color: var(--accent-color);
-            text-shadow: 0 0 20px rgba(255, 59, 59, 0.4);
-            margin: 0;
+            letter-spacing: 4px;
+            color: #fff;
+            text-shadow: 0 0 15px var(--neon-glow);
+            margin-bottom: 20px;
         }
 
-        /* WIDEO */
+        /* MINI PLAYER WIDEO */
         .video-box {
             width: 100%;
-            max-width: 900px;
-            margin: 0 auto 30px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            max-width: 400px; /* Zmniejszony rozmiar */
+            margin: 0 auto 30px; /* Wyśrodkowanie */
+            border: 2px solid var(--neon);
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 0 20px var(--neon-glow);
+            position: relative;
         }
 
         .video-wrapper {
             position: relative;
-            padding-bottom: 56.25%;
+            padding-bottom: 56.25%; /* 16:9 ratio */
             height: 0;
         }
 
@@ -70,119 +75,131 @@
 
         /* PANEL STEROWANIA */
         .controls {
-            background: var(--panel-color);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
             padding: 20px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            display: grid;
-            grid-template-columns: 100px 1fr 1fr auto auto;
-            gap: 15px;
-            align-items: end;
-            margin-bottom: 20px;
-            position: sticky;
-            top: 10px;
-            z-index: 99;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
         }
 
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
 
         label {
-            font-size: 0.7rem;
-            color: #888;
+            font-size: 0.8rem;
+            color: var(--neon);
             font-weight: bold;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--neon-glow);
         }
 
+        /* NEONOWE INPUTY */
         input {
-            background: #0a0a0a;
-            border: 1px solid #333;
+            background: #000;
+            border: 1px solid var(--neon);
             color: white;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 12px 15px;
+            border-radius: 8px;
             outline: none;
             transition: 0.3s;
+            box-shadow: 0 0 8px rgba(176, 38, 255, 0.2);
+            font-size: 1rem;
         }
 
         input:focus {
-            border-color: var(--accent-color);
+            box-shadow: 0 0 20px var(--neon-glow);
+            background: #0e0e0e;
         }
 
-        /* PRZYCISKI */
+        /* NEONOWE PRZYCISKI */
         button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
+            padding: 12px 25px;
+            border: 1px solid var(--neon);
+            background: transparent;
+            color: var(--neon);
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
-            transition: 0.2s;
-            height: 42px;
+            transition: 0.3s;
+            height: 48px;
+            margin-top: auto;
+            box-shadow: 0 0 10px rgba(176, 38, 255, 0.1);
         }
 
-        .btn-refresh {
-            background: var(--accent-color);
-            color: white;
-        }
-        .btn-refresh:hover { background: #d63030; }
-
-        .btn-toggle {
-            background: #333;
-            color: #ccc;
-        }
-        .btn-toggle.active {
-            background: #ddd;
+        button:hover {
+            background: var(--neon);
             color: #000;
+            box-shadow: 0 0 25px var(--neon);
         }
 
-        /* LISTA GRACZY */
-        .status-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            color: #666;
+        button.active {
+            background: var(--neon);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon);
+        }
+
+        /* STATYSTYKI */
+        .stats {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #888;
             font-size: 0.9rem;
         }
 
+        /* GRID Z KAFELKAMI */
         #grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            width: 100%;
         }
 
         .card {
-            background: var(--panel-color);
+            background: var(--card-bg);
+            border: 1px solid #222; /* Domyślnie ciemna ramka */
             padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #1a1a1a;
+            border-radius: 10px;
             display: flex;
             align-items: center;
+            transition: 0.3s;
         }
 
+        /* Efekt najechania na kafelek */
         .card:hover {
-            border-color: var(--accent-color);
-            background: #181818;
+            border-color: var(--neon);
+            box-shadow: 0 0 15px var(--neon-glow);
+            transform: translateY(-5px);
         }
 
         .id-txt {
-            color: var(--accent-color);
+            color: var(--neon);
             font-weight: bold;
-            font-size: 1.1rem;
-            margin-right: 10px;
+            font-size: 1.2rem;
+            margin-right: 15px;
+            text-shadow: 0 0 5px var(--neon-glow);
             min-width: 50px;
         }
 
         .nick-txt {
-            color: #ddd;
+            color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .hidden { display: none; }
-
-        @media (max-width: 900px) {
-            .controls { grid-template-columns: 1fr 1fr; }
+        
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -196,7 +213,7 @@
 
     <div class="video-box">
         <div class="video-wrapper">
-            <iframe src="https://www.youtube.com/embed/4DIcijdahZE?autoplay=0" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/4DIcijdahZE?autoplay=1&mute=1&loop=1&playlist=4DIcijdahZE" allow="autoplay" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -206,21 +223,22 @@
             <input type="text" id="srv" value="8rml8v">
         </div>
         <div class="input-group">
-            <label>ID Gracza</label>
+            <label>Szukaj ID</label>
             <input type="number" id="sid" placeholder="np. 123" oninput="render()">
         </div>
         <div class="input-group">
-            <label>Nick Gracza</label>
+            <label>Szukaj Nicku</label>
             <input type="text" id="snick" placeholder="np. cwel" oninput="render()">
         </div>
         
-        <button class="btn-refresh" onclick="getData()">ODŚWIEŻ</button>
-        <button id="btnToggle" class="btn-toggle active" onclick="toggleList()">UKRYJ LISTĘ</button>
+        <div style="display:flex; gap:10px; margin-top: auto;">
+            <button onclick="getData()">Odśwież</button>
+            <button id="btnToggle" class="active" onclick="toggleList()">Ukryj listę</button>
+        </div>
     </div>
 
-    <div class="status-info">
-        <span id="counter">Ładowanie...</span>
-        <span id="time"></span>
+    <div class="stats">
+        <span id="counter">Ładowanie danych...</span> | <span id="time"></span>
     </div>
 
     <div id="grid"></div>
@@ -233,28 +251,23 @@
 
     async function getData() {
         const sID = document.getElementById('srv').value;
-        const btn = document.querySelector('.btn-refresh');
-        const originalText = btn.innerText;
+        const btn = document.querySelector('button'); // Pierwszy przycisk to odśwież
         
         btn.innerText = "...";
-        btn.disabled = true;
-
+        
         try {
-            // Dodajemy losowy numer (?t=...) żeby przeglądarka nie zapamiętywała starych danych
             const res = await fetch(`https://corsproxy.io/?https://servers-frontend.fivem.net/api/servers/single/${sID}?t=${Date.now()}`);
             const data = await res.json();
             
             players = data.Data.players;
             players.sort((a,b) => a.id - b.id);
             
-            document.getElementById('time').innerText = "Zaktualizowano: " + new Date().toLocaleTimeString();
+            document.getElementById('time').innerText = "Aktualizacja: " + new Date().toLocaleTimeString();
             render();
         } catch(e) {
-            alert("Błąd pobierania! Sprawdź Server ID.");
+            document.getElementById('counter').innerText = "Błąd serwera / złe ID.";
         }
-
-        btn.innerText = originalText;
-        btn.disabled = false;
+        btn.innerText = "ODŚWIEŻ";
     }
 
     function render() {
@@ -269,7 +282,7 @@
             return mId && mNick;
         });
 
-        counter.innerHTML = `Online: <strong style="color:#ff3b3b">${filtered.length}</strong> / ${players.length}`;
+        counter.innerHTML = `Online: <strong style="color:var(--neon)">${filtered.length}</strong> / ${players.length}`;
 
         if(!showList) {
             grid.innerHTML = "";
@@ -302,7 +315,7 @@
         render();
     }
 
-    // Pobierz dane na start
+    // Start
     getData();
 </script>
 

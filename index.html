@@ -73,24 +73,15 @@
         .color-preview { width: 25px; height: 25px; border-radius: 4px; border: 2px solid #fff; background-color: var(--theme); position: relative; cursor: pointer; }
         #themePicker { position: absolute; top: -10px; left: -10px; width: 50px; height: 50px; opacity: 0; cursor: pointer; }
 
-        /* --- NAGŁÓWEK (WYŻEJ) --- */
-        header { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            padding-top: 20px; /* Zmniejszono padding, aby był wyżej */
-        }
+        /* --- NAGŁÓWEK --- */
+        header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
         h1 { font-size: 3rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; background: linear-gradient(to bottom, #fff 40%, #999 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
         
-        /* PODPIS Z KRESKAMI */
         .signature { 
-            font-size: 1rem; 
-            color: var(--theme); 
-            letter-spacing: 5px; 
-            text-transform: uppercase; 
-            font-weight: bold; 
+            font-size: 1rem; color: var(--theme); letter-spacing: 5px; 
+            text-transform: uppercase; font-weight: bold; 
             text-shadow: 0 0 10px var(--theme-glow);
-            display: inline-block;
-            position: relative;
+            display: inline-block; position: relative;
         }
         .signature::before, .signature::after { content: "—"; color: #555; margin: 0 15px; }
 
@@ -101,7 +92,6 @@
             overflow: hidden; background: #000;
             box-shadow: 0 0 25px var(--theme-glow);
             position: relative; z-index: 20;
-            transition: border-color 0.3s, box-shadow 0.3s;
         }
         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
@@ -170,7 +160,7 @@
             <input type="text" id="customSrv" class="hidden-input" placeholder="Wpisz ID serwera">
         </div>
         <div class="input-group"><label>Szukaj ID</label><input type="number" id="sid" placeholder="np. 123" oninput="render()"></div>
-        <div class="input-group"><label>Szukaj Nicku</label><input type="text" id="snick" placeholder="np. kejcpi" oninput="render()"></div>
+        <div class="input-group"><label>Szukaj Nicku</label><input type="text" id="snick" placeholder="np. cwel" oninput="render()"></div>
         <div class="btn-group" style="padding-top: 19px; display: flex; gap: 10px;">
             <button id="refreshBtn" onclick="manualRefresh()">ODŚWIEŻ</button>
             <button id="btnToggle" class="active" onclick="toggleList()">Ukryj listę</button>
@@ -207,12 +197,12 @@
                 if (response.ok) {
                     dot.className = 'dot online';
                     text.innerText = 'ONLINE';
-                    text.classList.remove('err');
+                    text.style.color = 'var(--theme)';
                 } else { throw new Error(); }
             } catch (e) {
                 dot.className = 'dot offline';
                 text.innerText = 'BŁĄD';
-                text.classList.add('err');
+                text.style.opacity = '0.5';
             }
         });
     }

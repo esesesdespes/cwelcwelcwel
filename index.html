@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrandRP Finder | by kejcpi</title>
     <style>
-        /* --- PALETA KOLORÓW (DOMYŚLNA) --- */
+        /* --- PALETA KOLORÓW --- */
         :root {
             --bg: #050505;             
             --panel: #0a0a0a;          
             
-            /* MOTYW ZMIENNY */
-            --theme: #b026ff;          
-            --theme-glow: rgba(176, 38, 255, 0.5);
+            /* NOWY KOLOR GŁÓWNY (Electric Blue) */
+            --theme: #0055FF;          
+            --theme-glow: rgba(0, 85, 255, 0.5);
             
             /* STAŁE NAGŁÓWKA */
             --header-gray: #e6e6e6;    
@@ -41,46 +41,47 @@
             min-height: 100vh;
         }
 
-        /* Relative potrzebne dla pozycjonowania emotki wewnątrz wrapper */
         .wrapper { 
             width: 100%; max-width: 1300px; position: relative; 
         }
 
-        /* --- NOWY PICKER W PRAWYM GÓRNYM ROGU --- */
+        /* --- IKONA MOTYWU (DIAMENT) --- */
         .theme-switcher-top {
             position: absolute;
             top: 0px;
             right: 10px;
-            z-index: 200; /* Zawsze na wierzchu */
-            width: 50px;
-            height: 50px;
+            z-index: 200;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* Stylizacja emotki */
+        /* Animowany Diament */
         .theme-icon {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             cursor: pointer;
             filter: drop-shadow(0 0 10px var(--theme-glow));
-            transition: transform 0.3s;
-            text-align: center;
-            line-height: 50px;
+            transition: all 0.3s ease;
+            animation: gemPulse 3s infinite alternate; /* Animacja pulsowania */
+        }
+
+        @keyframes gemPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--theme)); }
+            100% { transform: scale(1.1); filter: drop-shadow(0 0 20px var(--theme-glow)); }
         }
 
         .theme-switcher-top:hover .theme-icon {
-            transform: scale(1.1) rotate(10deg);
+            transform: rotate(15deg) scale(1.2);
+            filter: drop-shadow(0 0 25px var(--theme));
         }
 
-        /* Ukryty input, który jest "nad" emotką i przechwytuje kliknięcie */
+        /* Ukryty input */
         #themePicker {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0; 
-            cursor: pointer;
-            padding: 0;
-            margin: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; padding: 0; margin: 0;
         }
 
         /* --- NAGŁÓWEK --- */
@@ -258,8 +259,8 @@
 
 <div class="wrapper">
     <div class="theme-switcher-top" title="Zmień kolor motywu">
-        <div class="theme-icon">🎨</div>
-        <input type="color" id="themePicker" value="#b026ff">
+        <div class="theme-icon">💎</div>
+        <input type="color" id="themePicker" value="#0055FF">
     </div>
 
     <header>
@@ -309,44 +310,48 @@
 </div>
 
 <script>
+    // Zmienne globalne (dostępne dla całej strony)
     let players = [];
     let showList = true;
 
-    // --- LOGIKA ZMIANY KOLORÓW (POPRAWIONA) ---
-    document.addEventListener("DOMContentLoaded", function() {
-        const picker = document.getElementById('themePicker');
+    // --- LOGIKA MOTYWU ---
+    // Definiujemy funkcję setTheme globalnie
+    function setTheme(color) {
+        document.documentElement.style.setProperty('--theme', color);
+        document.documentElement.style.setProperty('--theme-glow', color + '66');
         
-        // Funkcja zmieniająca motyw
-        function setTheme(color) {
-            document.documentElement.style.setProperty('--theme', color);
-            // Dodajemy alpha channel (przezroczystość) do glow
-            document.documentElement.style.setProperty('--theme-glow', color + '66');
-            
-            if(picker) picker.value = color;
-            localStorage.setItem('grandrp_theme', color);
-        }
+        const picker = document.getElementById('themePicker');
+        if(picker) picker.value = color;
+        
+        localStorage.setItem('grandrp_theme', color);
+    }
 
-        // Event listener na zmianę koloru
+    // Inicjalizacja przy starcie
+    window.onload = function() {
+        // Obsługa koloru
+        const picker = document.getElementById('themePicker');
         if(picker) {
             picker.addEventListener('input', (e) => {
                 setTheme(e.target.value);
             });
-            
-            // Wczytanie zapisanego koloru
-            const savedColor = localStorage.getItem('grandrp_theme');
-            if (savedColor) {
-                setTheme(savedColor);
-            }
         }
-        
-        // Uruchomienie pobierania danych
+
+        const savedColor = localStorage.getItem('grandrp_theme');
+        if (savedColor) {
+            setTheme(savedColor);
+        } else {
+            // Domyślnie Twój niebieski
+            setTheme('#0055FF');
+        }
+
+        // Pobranie danych na start
         getData(false);
         
-        // Auto-odświeżanie co 15 sekund
+        // Auto-odświeżanie
         setInterval(() => {
             getData(true);
         }, 15000);
-    });
+    };
 
     // --- FUNKCJE DANYCH ---
     
@@ -377,83 +382,9 @@
         if (!isAuto && btn) btn.innerText = "...";
         
         try {
-            // Dodano t=${Date.now()} żeby uniknąć cache
             const res = await fetch(`https://corsproxy.io/?https://servers-frontend.fivem.net/api/servers/single/${sID}?t=${Date.now()}`);
             const data = await res.json();
             
             if (data && data.Data && data.Data.players) {
                 players = data.Data.players;
                 players.sort((a,b) => a.id - b.id);
-                
-                const now = new Date();
-                if(timeSpan) timeSpan.innerText = "Aktualizacja: " + now.toLocaleTimeString();
-                render();
-            } else {
-                console.log("Brak danych graczy w odpowiedzi API");
-            }
-        } catch(e) {
-            console.error("Błąd pobierania:", e);
-            if (!isAuto) alert("Błąd! Nie znaleziono serwera lub problem z połączeniem.");
-        }
-
-        if (!isAuto && btn) btn.innerText = "ODŚWIEŻ";
-    }
-
-    function manualRefresh() {
-        getData(false);
-    }
-
-    function render() {
-        const idVal = document.getElementById('sid').value;
-        const nickVal = document.getElementById('snick').value.toLowerCase();
-        const grid = document.getElementById('grid');
-        const counter = document.getElementById('counter');
-
-        if(!grid || !counter) return;
-
-        const filtered = players.filter(p => {
-            const mId = idVal ? p.id.toString().startsWith(idVal) : true;
-            const mNick = nickVal ? p.name.toLowerCase().includes(nickVal) : true;
-            return mId && mNick;
-        });
-
-        counter.innerHTML = `Online: <strong>${filtered.length}</strong>`;
-
-        if(!showList) {
-            grid.innerHTML = "";
-            return;
-        }
-
-        let html = "";
-        filtered.forEach(p => {
-            html += `
-                <div class="card">
-                    <div class="id-box">${p.id}</div>
-                    <span class="nick-txt" title="${p.name}">${p.name}</span>
-                </div>
-            `;
-        });
-        grid.innerHTML = html || "<div style='color:#555; padding:10px; grid-column: 1/-1; text-align:center;'>Brak wyników.</div>";
-    }
-
-    function toggleList() {
-        showList = !showList;
-        const btn = document.getElementById('btnToggle');
-        
-        if(showList) {
-            if(btn) {
-                btn.innerText = "Ukryj listę";
-                btn.classList.add('active');
-            }
-        } else {
-            if(btn) {
-                btn.innerText = "Pokaż listę";
-                btn.classList.remove('active');
-            }
-        }
-        render();
-    }
-</script>
-
-</body>
-</html>

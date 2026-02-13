@@ -38,6 +38,45 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden; /* Żeby tło nie rozpychało strony */
+        }
+
+        /* --- NOWE TŁO (AURORA + GRID) --- */
+        .background-fx {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* Warstwa 1: Rozmazane kolory */
+        .bg-gradient {
+            position: absolute;
+            width: 150%; height: 150%;
+            top: -25%; left: -25%;
+            background: radial-gradient(circle at 50% 50%, var(--theme-glow), transparent 40%),
+                        radial-gradient(circle at 20% 80%, var(--theme-glow), transparent 40%);
+            filter: blur(120px);
+            opacity: 0.25; /* Delikatne */
+            animation: floatBg 15s infinite alternate ease-in-out;
+        }
+
+        /* Warstwa 2: Siatka taktyczna */
+        .bg-grid {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        @keyframes floatBg {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-20px, 20px) rotate(5deg); }
         }
 
         .wrapper { 
@@ -53,19 +92,17 @@
             align-items: center;
             gap: 10px;
             padding: 8px 15px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px); /* Efekt szkła */
             border: 1px solid var(--theme);
             border-radius: 8px;
-            box-shadow: 0 0 10px var(--theme-glow);
+            box-shadow: 0 0 15px var(--theme-glow);
             z-index: 200;
         }
 
         .theme-label {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: var(--theme);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.8rem; font-weight: bold; color: var(--theme);
+            text-transform: uppercase; letter-spacing: 1px;
             text-shadow: 0 0 5px var(--theme-glow);
         }
 
@@ -79,8 +116,8 @@
         }
 
         #themePicker {
-            position: absolute; top: -5px; left: -5px;
-            width: 40px; height: 40px; opacity: 0; cursor: pointer;
+            position: absolute; top: -10px; left: -10px;
+            width: 50px; height: 50px; opacity: 0; cursor: pointer;
         }
 
         /* --- NAGŁÓWEK --- */
@@ -105,14 +142,14 @@
             text-shadow: 0 0 10px var(--theme-glow);
             transition: color 0.3s;
         }
-        .signature::before, .signature::after { content: "—"; color: #444; margin: 0 10px; }
+        .signature::before, .signature::after { content: "—"; color: #555; margin: 0 10px; }
 
         /* --- VIDEO --- */
         .video-box {
             width: 100%; max-width: 400px; margin: 0 auto 30px;
             border: 2px solid var(--theme); border-radius: 15px;
             overflow: hidden; background: #000;
-            box-shadow: 0 0 25px var(--theme-glow);
+            box-shadow: 0 0 30px var(--theme-glow); /* Mocniejszy cień */
             position: relative; z-index: 20;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
@@ -121,12 +158,15 @@
 
         /* --- PANEL STEROWANIA --- */
         .controls {
-            background: rgba(255, 255, 255, 0.02); padding: 25px;
+            background: rgba(10, 10, 10, 0.7); /* Bardziej przezroczyste */
+            backdrop-filter: blur(10px);       /* Rozmycie tła pod panelem */
+            padding: 25px;
             border-radius: 20px; display: flex; flex-wrap: wrap; gap: 20px;
             align-items: flex-start; margin-bottom: 20px;
             justify-content: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative; z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .input-group {
@@ -142,18 +182,19 @@
         }
 
         input, select {
-            background: #000; border: 1px solid var(--theme);
+            background: rgba(0,0,0,0.6); 
+            border: 1px solid var(--theme);
             color: white; padding: 14px; border-radius: 10px;
             outline: none; font-size: 1rem; transition: 0.3s;
             width: 100%;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.05);
             position: relative; z-index: 101;
         }
         
         input:focus, select:focus {
             border-color: var(--theme);
             box-shadow: 0 0 15px var(--theme-glow);
-            background: #0a0a0a;
+            background: #000;
         }
 
         /* --- PRZYCISKI --- */
@@ -162,7 +203,7 @@
         }
 
         button {
-            padding: 12px 30px; background: transparent;
+            padding: 12px 30px; background: rgba(0,0,0,0.4);
             border: 1px solid var(--theme); color: var(--theme);
             border-radius: 10px; cursor: pointer; font-weight: bold;
             text-transform: uppercase; font-size: 0.9rem; height: 48px;
@@ -181,12 +222,12 @@
             display: flex; justify-content: center; align-items: center;    
             position: relative; margin-bottom: 25px; 
             padding: 0 10px; width: 100%; height: 40px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         #counter {
             font-size: 1.8rem; color: #fff;
             text-transform: uppercase; letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
         
         #counter strong {
@@ -208,9 +249,11 @@
         }
 
         .card {
-            background: var(--panel); border: 1px solid #222; 
+            background: rgba(10, 10, 10, 0.8); /* Lekka przezroczystość */
+            backdrop-filter: blur(5px);
+            border: 1px solid #222; 
             padding: 15px; border-radius: 10px; display: flex; align-items: center;
-            transition: 0.3s; position: relative; /* Dla pingu */
+            transition: 0.3s; position: relative;
         }
         
         .card:hover {
@@ -247,6 +290,11 @@
     </style>
 </head>
 <body>
+
+<div class="background-fx">
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+</div>
 
 <div class="wrapper">
     <div class="theme-panel">
@@ -313,7 +361,6 @@
         document.documentElement.style.setProperty('--theme-glow', color + '66');
         
         const picker = document.getElementById('themePicker');
-        // Ustawiamy kolor tła w podglądzie
         const preview = document.querySelector('.color-preview');
         if(preview) preview.style.backgroundColor = color;
         if(picker) picker.value = color;
@@ -323,7 +370,6 @@
 
     // --- INICJALIZACJA ---
     document.addEventListener("DOMContentLoaded", function() {
-        // Obsługa koloru
         const picker = document.getElementById('themePicker');
         if (picker) {
             picker.addEventListener('input', (e) => {
@@ -335,13 +381,11 @@
         if (savedColor) {
             setTheme(savedColor);
         } else {
-            setTheme('#0055FF'); // Domyślny Electric Blue
+            setTheme('#0055FF'); // Domyślny
         }
 
-        // Pobranie danych
         getData(false);
 
-        // Auto-odświeżanie
         setInterval(() => {
             getData(true);
         }, 15000);
@@ -363,7 +407,6 @@
         if (!isAuto && btn) btn.innerText = "...";
         
         try {
-            // Używamy timestampu aby ominąć cache
             const res = await fetch(`https://corsproxy.io/?https://servers-frontend.fivem.net/api/servers/single/${sID}?t=${Date.now()}`);
             const data = await res.json();
             
@@ -377,7 +420,7 @@
             }
         } catch(e) {
             console.error(e);
-            if (!isAuto) alert("Błąd! Nie znaleziono serwera lub brak połączenia.");
+            if (!isAuto) alert("Błąd! Nie znaleziono serwera.");
         }
 
         if (!isAuto && btn) btn.innerText = "ODŚWIEŻ";
@@ -424,14 +467,12 @@
 
         let html = "";
         filtered.forEach(p => {
-            // LOGIKA PINGU
-            // Pobieramy ping z danych gracza lub losujemy (jeśli API nie podaje pingu, co się zdarza)
-            const ping = p.ping !== undefined ? p.ping : Math.floor(Math.random() * 60) + 20;
+            // Symulacja pingu jeśli API nie zwraca (częste na FiveM)
+            const ping = p.ping !== undefined ? p.ping : Math.floor(Math.random() * 50) + 15;
             
-            // Kolor pingu
-            let pColor = '#00ff00'; // Zielony
-            if(ping > 70) pColor = '#ffaa00'; // Pomarańczowy
-            if(ping > 150) pColor = '#ff3333'; // Czerwony
+            let pColor = '#00ff00';
+            if(ping > 70) pColor = '#ffaa00';
+            if(ping > 150) pColor = '#ff3333';
 
             html += `
                 <div class="card">
@@ -441,7 +482,7 @@
                 </div>
             `;
         });
-        grid.innerHTML = html || "<div style='color:#555; padding:10px; grid-column:1/-1; text-align:center;'>Brak wyników.</div>";
+        grid.innerHTML = html || "<div style='color:#ccc; padding:10px; grid-column:1/-1; text-align:center;'>Brak wyników.</div>";
     }
 
     function toggleList() {

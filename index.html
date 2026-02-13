@@ -7,18 +7,19 @@
     <style>
         :root {
             --bg: #050505;             
-            --panel-glass: rgba(255, 255, 255, 0.05); 
-            --theme: #0055FF;          
-            --theme-glow: rgba(0, 85, 255, 0.5);
+            --panel: rgba(15, 15, 15, 0.85);          
+            --theme: #0055FF;
+            --theme-rgb: 0, 85, 255; /* Potrzebne do nowych efektów */
+            --theme-glow: rgba(0, 85, 255, 0.4);
             --text: #ffffff;
-            --text-dim: #aaa;
+            --text-dim: #888;
             --gold: #ffcc00;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             padding: 20px;
@@ -43,161 +44,152 @@
 
         .wrapper { width: 100%; max-width: 1300px; position: relative; padding-bottom: 50px; }
 
-        /* --- GLASSMORPHISM UTILS --- */
-        .glass {
-            background: var(--panel-glass);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
         /* --- SYSTEM STATUS --- */
         .system-status {
             position: absolute; top: 0; left: 0;
             display: flex; flex-direction: column; gap: 8px;
-            padding: 12px 18px; border-radius: 16px; z-index: 200;
+            padding: 10px 15px; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px); 
+            border: 1px solid var(--theme); 
+            box-shadow: 0 0 10px var(--theme-glow); 
+            border-radius: 8px; z-index: 200;
         }
-        .status-item { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; }
+        .status-item { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; font-weight: bold; }
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: 0.3s; }
-        .dot.online { background: var(--theme); box-shadow: 0 0 10px var(--theme); }
-        .status-label { color: var(--text-dim); text-transform: uppercase; }
+        .dot.online { background: var(--theme); box-shadow: 0 0 8px var(--theme); }
+        .status-label { color: var(--theme); text-transform: uppercase; }
 
         /* THEME PANEL */
         .theme-panel {
             position: absolute; top: 0; right: 0;
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 15px; border-radius: 16px; z-index: 200;
+            padding: 8px 15px; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px); border: 1px solid var(--theme);
+            border-radius: 8px; box-shadow: 0 0 15px var(--theme-glow);
+            z-index: 200;
         }
-        .color-preview { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); background-color: var(--theme); position: relative; cursor: pointer; box-shadow: 0 0 10px var(--theme-glow); }
+        .color-preview { width: 25px; height: 25px; border-radius: 4px; border: 2px solid #fff; background-color: var(--theme); position: relative; cursor: pointer; }
         #themePicker { position: absolute; top: -10px; left: -10px; width: 50px; height: 50px; opacity: 0; cursor: pointer; }
 
         /* --- NAGŁÓWEK --- */
-        header { text-align: center; margin-bottom: 40px; padding-top: 30px; }
+        header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
         h1 { 
-            font-size: 3.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; 
-            background: linear-gradient(to bottom, #fff 30%, #aaa 100%); 
+            font-size: 3rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; 
+            background: linear-gradient(to bottom, #fff 40%, #999 100%); 
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
             margin-bottom: 5px; transition: 0.5s;
-            filter: drop-shadow(0 0 5px var(--theme-glow));
-            animation: neonPulse 3s infinite ease-in-out;
         }
-        @keyframes neonPulse {
-            0%, 100% { filter: drop-shadow(0 0 8px var(--theme-glow)); }
-            50% { filter: drop-shadow(0 0 25px var(--theme)); }
-        }
-        .signature { font-size: 0.9rem; color: var(--theme); letter-spacing: 6px; text-transform: uppercase; font-weight: 700; display: inline-block; position: relative; }
-        .signature::before, .signature::after { content: "—"; color: rgba(255,255,255,0.2); margin: 0 15px; }
+        .signature { font-size: 1rem; color: var(--theme); letter-spacing: 5px; text-transform: uppercase; font-weight: bold; text-shadow: 0 0 10px var(--theme-glow); display: inline-block; position: relative; }
+        .signature::before, .signature::after { content: "—"; color: #555; margin: 0 15px; }
 
         /* VIDEO */
         .video-box {
-            width: 100%; max-width: 420px; margin: 0 auto 40px;
-            border-radius: 20px; overflow: hidden; background: #000;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px var(--theme-glow);
-            border: 1px solid rgba(255,255,255,0.1);
+            width: 100%; max-width: 400px; margin: 0 auto 30px;
+            border: 2px solid var(--theme); border-radius: 15px;
+            overflow: hidden; background: #000;
+            box-shadow: 0 0 25px var(--theme-glow);
         }
         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
         /* CONTROLS */
         .controls { 
-            padding: 30px; border-radius: 24px; 
-            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; 
-            margin-bottom: 30px; 
+            background: var(--panel); backdrop-filter: blur(10px); padding: 25px; 
+            border-radius: 12px; display: flex; flex-wrap: wrap; gap: 20px; 
+            justify-content: center; border: 1px solid #222; margin-bottom: 20px; 
         }
-        .input-group { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 180px; }
-        label { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-left: 5px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 180px; }
+        label { font-size: 0.7rem; color: var(--theme); font-weight: bold; text-transform: uppercase; margin-left: 5px; }
         input, select { 
-            background: rgba(0,0,0,0.3); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            color: white; padding: 15px 20px; border-radius: 14px; outline: none; transition: 0.3s; 
-            font-size: 1rem;
+            background: rgba(0,0,0,0.6); border: 1px solid #333; color: white; 
+            padding: 14px; border-radius: 8px; outline: none; transition: 0.3s; 
         }
-        input:focus, select:focus { border-color: var(--theme); box-shadow: 0 0 15px var(--theme-glow); background: rgba(0,0,0,0.5); }
+        input:focus, select:focus { border-color: var(--theme); box-shadow: 0 0 10px var(--theme-glow); }
         
         .btn-group button { 
-            padding: 12px 30px; background: rgba(255, 255, 255, 0.05); 
-            border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text); 
-            border-radius: 14px; cursor: pointer; font-weight: 700; text-transform: uppercase; 
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); height: 52px;
+            padding: 12px 30px; background: rgba(0,0,0,0.4); border: 1px solid var(--theme); 
+            color: var(--theme); border-radius: 8px; cursor: pointer; font-weight: bold; 
+            text-transform: uppercase; transition: 0.3s; height: 48px;
         }
-        .btn-group button:hover { 
-            background: var(--theme); color: #000; border-color: var(--theme);
-            box-shadow: 0 8px 25px var(--theme-glow); transform: translateY(-3px) scale(1.02);
-        }
+        .btn-group button:hover { background: var(--theme); color: #000; box-shadow: 0 0 20px var(--theme); }
 
-        .stats-bar { display: flex; justify-content: center; align-items: center; margin: 10px 0 40px 0; width: 100%; }
-        #counter { font-size: 2rem; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 2px; font-weight: 300; }
-        #counter strong { color: var(--text); font-weight: 900; text-shadow: 0 0 20px var(--theme); }
+        .stats-bar { display: flex; justify-content: center; align-items: center; margin: 10px 0 25px 0; width: 100%; }
+        #counter { font-size: 1.8rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+        #counter strong { color: var(--theme); text-shadow: 0 0 15px var(--theme); }
 
-        /* --- KAFELKI Z MAŚLANĄ ANIMACJĄ --- */
+        /* --- NOWE KAFELKI Z ANIMACJĄ "GLEAM" --- */
         #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; width: 100%; }
         
         .card { 
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 16px 20px; 
-            border-radius: 14px; 
+            background: var(--panel); 
+            backdrop-filter: blur(5px); 
+            border: 1px solid #222; 
+            border-left: 4px solid var(--theme); 
+            padding: 12px 18px; 
+            border-radius: 8px; 
             display: flex; 
             align-items: center; 
             position: relative; 
-            /* Zmieniona, luksusowa animacja! */
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden; /* Ważne dla efektu świetlnego */
+            /* Nowa, bardziej sprężysta animacja */
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             animation: fadeIn 0.4s ease forwards;
             opacity: 0;
             transform: translateY(10px) scale(1);
-            will-change: transform, background-color, box-shadow, border-color;
+            /* Akceleracja sprzętowa */
+            transform: translateZ(0); will-change: transform, box-shadow, background;
+        }
+
+        /* Efekt przelatującego światła (Gleam) */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%; width: 100%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: all 0.6s ease-in-out;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .card:hover { 
-            background: var(--theme); 
-            border-color: var(--theme);
-            box-shadow: 0 8px 25px var(--theme-glow); 
-            transform: translateY(-4px) scale(1.02); /* Lekkie uniesienie i powiększenie */
+            /* Zmiana tła na delikatny gradient w kolorze motywu */
+            background: linear-gradient(135deg, var(--panel), rgba(var(--theme-rgb), 0.25));
+            border-color: var(--theme); 
+            /* Wyższe uniesienie i powiększenie */
+            transform: translateY(-7px) scale(1.02); 
+            /* Głebszy, wielowarstwowy cień */
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5), 0 0 25px var(--theme-glow);
         }
 
-        /* Elementy wewnątrz kafelka - zsynchonizowane z animacją główną */
-        .ping-badge { 
-            font-family: monospace; font-weight: 700; color: var(--text-dim); 
-            margin-right: 15px; font-size: 0.85rem; 
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
-        }
-        
-        .id-box { 
-            background: rgba(0, 0, 0, 0.3); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            color: var(--theme); 
-            font-weight: bold; padding: 4px 10px; border-radius: 8px; 
-            margin-right: 15px; font-family: monospace; font-size: 1rem;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .nick-txt { 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; 
-            font-weight: 600; font-size: 1.05rem; 
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+        /* Uruchomienie efektu świetlnego po najechaniu */
+        .card:hover::before {
+            left: 150%;
         }
 
-        /* Zmiana kolorów na hover z tym samym miękkim tempem */
-        .card:hover .ping-badge { color: rgba(0, 0, 0, 0.7); }
-        .card:hover .id-box { background: rgba(0, 0, 0, 0.1); border-color: rgba(0, 0, 0, 0.3); color: #000; }
-        .card:hover .nick-txt { color: #000; }
+        /* Elementy wewnątrz muszą być nad efektem świetlnym */
+        .card > * { z-index: 2; position: relative; }
 
-        /* Gwiazdka ulubionych (Prawy Górny Róg) */
+        .ping-badge { font-size: 0.75rem; font-family: monospace; font-weight: bold; color: var(--theme); opacity: 0.9; margin-right: 15px; transition: 0.3s; }
+        .id-box { color: var(--theme); border: 1px solid var(--theme); font-weight: bold; padding: 5px 10px; border-radius: 6px; margin-right: 15px; font-family: monospace; transition: 0.3s; background: rgba(0,0,0,0.2); }
+        .nick-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; transition: 0.3s; }
+
+        /* Zmiany kolorów tekstu na hover dla lepszego kontrastu */
+        .card:hover .ping-badge { color: #fff; }
+        .card:hover .id-box { background: var(--theme); color: #000; border-color: var(--theme); box-shadow: 0 0 10px var(--theme-glow); }
+        .card:hover .nick-txt { color: #fff; text-shadow: 0 0 5px var(--theme-glow); }
+
         .fav-btn {
-            position: absolute; top: 12px; right: 15px;
+            position: absolute; top: 8px; right: 10px;
             background: transparent !important; border: none !important;
-            color: rgba(255,255,255,0.2) !important; font-size: 1.2rem; 
-            cursor: pointer; padding: 0; 
-            box-shadow: none !important; height: auto; outline: none; line-height: 1;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #444 !important; font-size: 1.2rem; 
+            cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 0; 
+            box-shadow: none !important; height: auto; outline: none; line-height: 1; z-index: 5;
         }
-        .fav-btn:hover { transform: scale(1.3) !important; }
-        .fav-btn.active { color: var(--gold) !important; filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5)); }
-        
-        .card:hover .fav-btn:not(.active) { color: rgba(0,0,0,0.3) !important; }
+        .fav-btn:hover { color: var(--gold) !important; transform: scale(1.3) rotate(15deg) !important; }
+        .fav-btn.active { color: var(--gold) !important; filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.8)); }
 
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+
         .hidden-input { display: none; }
     </style>
 </head>
@@ -206,13 +198,13 @@
 <div class="background-fx"></div>
 
 <div class="wrapper">
-    <div class="system-status glass">
-        <div class="status-item"><div id="fivem-dot" class="dot"></div><span class="status-label">FiveM:</span> <span id="fivem-text" style="color:var(--text-dim)">CHECKING</span></div>
-        <div class="status-item"><div id="steam-dot" class="dot"></div><span class="status-label">Steam:</span> <span id="steam-text" style="color:var(--text-dim)">CHECKING</span></div>
+    <div class="system-status">
+        <div class="status-item"><div id="fivem-dot" class="dot"></div><span class="status-label">FiveM:</span> <span id="fivem-text">CHECKING</span></div>
+        <div class="status-item"><div id="steam-dot" class="dot"></div><span class="status-label">Steam:</span> <span id="steam-text">CHECKING</span></div>
     </div>
 
-    <div class="theme-panel glass">
-        <span class="theme-label" style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">KOLOR</span>
+    <div class="theme-panel">
+        <span class="theme-label">MOTYW:</span>
         <div class="color-preview"><input type="color" id="themePicker" value="#0055FF"></div>
     </div>
 
@@ -227,7 +219,7 @@
         </div>
     </div>
 
-    <div class="controls glass">
+    <div class="controls">
         <div class="input-group">
             <label>Serwer</label>
             <select id="serverSelect" onchange="checkCustomServer()">
@@ -239,9 +231,9 @@
         </div>
         <div class="input-group"><label>Szukaj ID</label><input type="number" id="sid" placeholder="np. 123" oninput="renderDebounced()"></div>
         <div class="input-group"><label>Szukaj Nicku</label><input type="text" id="snick" placeholder="np. cwel" oninput="renderDebounced()"></div>
-        <div class="btn-group" style="padding-top: 24px; display: flex; gap: 15px;">
-            <button id="refreshBtn" onclick="manualRefresh()">Odśwież</button>
-            <button id="btnToggle" onclick="toggleList()">Ukryj listę</button>
+        <div class="btn-group" style="padding-top: 19px; display: flex; gap: 10px;">
+            <button id="refreshBtn" onclick="manualRefresh()">ODŚWIEŻ</button>
+            <button id="btnToggle" class="active" onclick="toggleList()">Ukryj listę</button>
         </div>
     </div>
 
@@ -256,8 +248,15 @@
     let favs = JSON.parse(localStorage.getItem('grandrp_favs')) || [];
     let renderTimeout;
 
+    // Funkcja pomocnicza do konwersji HEX na RGB dla nowych efektów
+    function hexToRgb(hex) {
+        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 85, 255';
+    }
+
     function setTheme(color) {
         document.documentElement.style.setProperty('--theme', color);
+        document.documentElement.style.setProperty('--theme-rgb', hexToRgb(color)); // Ustawiamy też wersję RGB
         document.documentElement.style.setProperty('--theme-glow', color + '66');
         document.querySelector('.color-preview').style.backgroundColor = color;
         localStorage.setItem('grandrp_theme', color);
@@ -273,7 +272,7 @@
                 const res = await fetch(`https://corsproxy.io/?${s.url}`, { method: 'HEAD' });
                 if (res.ok) { dot.className = 'dot online'; text.innerText = 'ONLINE'; text.style.color = 'var(--text)'; }
                 else throw new Error();
-            } catch (e) { dot.className = 'dot offline'; text.innerText = 'BŁĄD'; text.style.color = 'var(--text-dim)'; }
+            } catch (e) { dot.className = 'dot offline'; text.innerText = 'BŁĄD'; text.style.opacity = '0.5'; }
         });
     }
 
@@ -354,7 +353,14 @@
 
     function toggleList() {
         showList = !showList;
-        document.getElementById('btnToggle').innerText = showList ? "Ukryj listę" : "Pokaż listę";
+        const btn = document.getElementById('btnToggle');
+        if (showList) {
+            btn.innerText = "Ukryj listę";
+            btn.classList.add('active');
+        } else {
+            btn.innerText = "Pokaż listę";
+            btn.classList.remove('active');
+        }
         render();
     }
 
@@ -367,6 +373,8 @@
 
     const saved = localStorage.getItem('grandrp_theme');
     if(saved) setTheme(saved);
+    else setTheme('#0055FF'); // Domyślny kolor startowy
+    
     checkSystemStatus(); getData();
     setInterval(getData, 30000);
     setInterval(checkSystemStatus, 60000);

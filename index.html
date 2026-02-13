@@ -7,14 +7,14 @@
     <style>
         /* --- PALETA KOLORÓW (DOMYŚLNA) --- */
         :root {
-            --bg: #050505;             /* Tło całej strony */
-            --panel: #0a0a0a;          /* Tło paneli/kart */
+            --bg: #050505;
+            --panel: #0a0a0a;
             
-            /* DOMYŚLNY MOTYW (ZMIENIA SIĘ PRZEZ JS) */
+            /* MOTYW ZMIENNY */
             --theme: #b026ff;          
             --theme-glow: rgba(176, 38, 255, 0.5);
             
-            /* KOLORY NAGŁÓWKA (STAŁE) */
+            /* STAŁE NAGŁÓWKA */
             --header-gray: #e6e6e6;    
             --header-glow: rgba(255, 255, 255, 0.3);
 
@@ -41,7 +41,43 @@
             min-height: 100vh;
         }
 
-        .wrapper { width: 100%; max-width: 1300px; }
+        /* Dodano position relative, żeby można było pozycjonować picker wewnątrz */
+        .wrapper { 
+            width: 100%; max-width: 1300px; position: relative; 
+        }
+
+        /* --- NOWY PICKER W PRAWYM GÓRNYM ROGU --- */
+        .theme-switcher-top {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            z-index: 200; /* Zawsze na wierzchu */
+        }
+
+        /* Stylizacja emotki */
+        .theme-icon {
+            font-size: 2.5rem;
+            cursor: pointer;
+            /* Emotka świeci aktualnym kolorem motywu */
+            filter: drop-shadow(0 0 10px var(--theme-glow));
+            transition: transform 0.3s;
+        }
+
+        /* Efekt po najechaniu na emotkę */
+        .theme-switcher-top:hover .theme-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        /* Ukryty input, który jest "nad" emotką */
+        #themePicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0; /* Niewidzialny */
+            cursor: pointer;
+        }
 
         /* --- NAGŁÓWEK --- */
         header { 
@@ -66,7 +102,7 @@
 
         .signature {
             font-size: 1rem;
-            color: var(--theme); /* To się zmieni jak wybierzesz inny kolor */
+            color: var(--theme);
             letter-spacing: 5px;
             text-transform: uppercase;
             font-weight: bold;
@@ -84,8 +120,7 @@
             border: 2px solid var(--theme); border-radius: 15px;
             overflow: hidden; background: #000;
             box-shadow: 0 0 25px var(--theme-glow);
-            position: relative;
-            z-index: 20;
+            position: relative; z-index: 20;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; }
@@ -101,18 +136,12 @@
             margin-bottom: 20px;
             justify-content: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            z-index: 100;
+            position: relative; z-index: 100;
         }
 
         .input-group {
             display: flex; flex-direction: column; gap: 8px;
             flex: 1; min-width: 180px;
-        }
-
-        /* Specjalny styl dla pickera kolorów */
-        .color-group {
-            flex: 0; min-width: 80px;
         }
 
         label {
@@ -133,13 +162,6 @@
             position: relative; z-index: 101;
         }
         
-        /* Stylizacja inputu koloru */
-        input[type="color"] {
-            padding: 5px;
-            height: 50px;
-            cursor: pointer;
-        }
-
         input:focus, select:focus {
             border-color: var(--theme);
             box-shadow: 0 0 15px var(--theme-glow);
@@ -231,6 +253,11 @@
 <body>
 
 <div class="wrapper">
+    <div class="theme-switcher-top" title="Zmień kolor motywu">
+        <div class="theme-icon">🎨</div>
+        <input type="color" id="themePicker" value="#b026ff">
+    </div>
+
     <header>
         <h1>GrandRP Finder</h1>
         <div class="signature">by kejcpi</div>
@@ -251,11 +278,6 @@
                 <option value="custom" style="font-weight:bold;">-- Wpisz własne ID --</option>
             </select>
             <input type="text" id="customSrv" class="hidden-input" placeholder="np. 6y6m6y" onchange="manualRefresh()">
-        </div>
-
-        <div class="input-group color-group">
-            <label>Motyw</label>
-            <input type="color" id="themePicker" value="#b026ff" title="Wybierz kolor strony">
         </div>
 
         <div class="input-group">
@@ -289,133 +311,12 @@
     // --- LOGIKA ZMIANY KOLORÓW ---
     const picker = document.getElementById('themePicker');
     
-    // Funkcja ustawiająca kolor
     function setTheme(color) {
         document.documentElement.style.setProperty('--theme', color);
-        // Tworzymy glow dodając przezroczystość do hex (np. #ff0000 -> #ff000066)
+        // Glow z przezroczystością
         document.documentElement.style.setProperty('--theme-glow', color + '66');
         picker.value = color;
-        // Zapisz w pamięci przeglądarki
         localStorage.setItem('grandrp_theme', color);
     }
 
-    // Nasłuchuj zmian w pickerze
-    picker.addEventListener('input', (e) => {
-        setTheme(e.target.value);
-    });
-
-    // Przy starcie sprawdź czy jest zapisany kolor
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedColor = localStorage.getItem('grandrp_theme');
-        if (savedColor) {
-            setTheme(savedColor);
-        }
-    });
-    // -----------------------------
-
-    function checkCustomServer() {
-        const select = document.getElementById('serverSelect');
-        const customInput = document.getElementById('customSrv');
-        
-        if (select.value === 'custom') {
-            customInput.style.display = 'block';
-            customInput.focus();
-        } else {
-            customInput.style.display = 'none';
-            manualRefresh();
-        }
-    }
-
-    async function getData(isAuto = false) {
-        let sID = document.getElementById('serverSelect').value;
-        
-        if (sID === 'custom') {
-            sID = document.getElementById('customSrv').value;
-            if (!sID || sID.length < 3) return; 
-        }
-
-        const btn = document.getElementById('refreshBtn');
-        const timeSpan = document.getElementById('time');
-        
-        if (!isAuto) btn.innerText = "...";
-        
-        try {
-            const res = await fetch(`https://corsproxy.io/?https://servers-frontend.fivem.net/api/servers/single/${sID}?t=${Date.now()}`);
-            const data = await res.json();
-            
-            if (data && data.Data && data.Data.players) {
-                players = data.Data.players;
-                players.sort((a,b) => a.id - b.id);
-                
-                const now = new Date();
-                timeSpan.innerText = "Aktualizacja: " + now.toLocaleTimeString();
-                render();
-            }
-        } catch(e) {
-            if (!isAuto) alert("Błąd! Nie znaleziono serwera.");
-        }
-
-        if (!isAuto) btn.innerText = "ODŚWIEŻ";
-    }
-
-    function manualRefresh() {
-        getData(false);
-    }
-
-    function render() {
-        const idVal = document.getElementById('sid').value;
-        const nickVal = document.getElementById('snick').value.toLowerCase();
-        const grid = document.getElementById('grid');
-        const counter = document.getElementById('counter');
-
-        const filtered = players.filter(p => {
-            const mId = idVal ? p.id.toString().startsWith(idVal) : true;
-            const mNick = nickVal ? p.name.toLowerCase().includes(nickVal) : true;
-            return mId && mNick;
-        });
-
-        counter.innerHTML = `Online: <strong>${filtered.length}</strong>`;
-
-        if(!showList) {
-            grid.innerHTML = "";
-            return;
-        }
-
-        let html = "";
-        filtered.forEach(p => {
-            html += `
-                <div class="card">
-                    <div class="id-box">${p.id}</div>
-                    <span class="nick-txt" title="${p.name}">${p.name}</span>
-                </div>
-            `;
-        });
-        grid.innerHTML = html || "<div style='color:#555; padding:10px;'>Brak wyników.</div>";
-    }
-
-    function toggleList() {
-        showList = !showList;
-        const btn = document.getElementById('btnToggle');
-        
-        if(showList) {
-            btn.innerText = "Ukryj listę";
-            btn.classList.add('active');
-        } else {
-            btn.innerText = "Pokaż listę";
-            btn.classList.remove('active');
-        }
-        render();
-    }
-
-    // Start
-    getData(false);
-
-    // Auto-odświeżanie co 15 sekund
-    setInterval(() => {
-        getData(true);
-    }, 15000);
-
-</script>
-
-</body>
-</html>
+    picker.addEventListener('input', (

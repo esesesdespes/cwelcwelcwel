@@ -30,7 +30,6 @@
             overflow-x: hidden;
         }
 
-        /* --- TŁO (MESH GRADIENT) --- */
         .background-fx {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -44,7 +43,6 @@
 
         .wrapper { width: 100%; max-width: 1300px; position: relative; padding-bottom: 50px; }
 
-        /* --- SYSTEM STATUS --- */
         .system-status {
             position: absolute; top: 0; left: 0;
             display: flex; flex-direction: column; gap: 8px;
@@ -57,7 +55,6 @@
         .dot.online { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
         .status-label { color: var(--theme); text-transform: uppercase; }
 
-        /* THEME PANEL */
         .theme-panel {
             position: absolute; top: 0; right: 0;
             display: flex; align-items: center; gap: 10px;
@@ -168,7 +165,7 @@
 
     <div class="stats-bar">
         <div id="counter">Online: <strong>0</strong></div>
-        <div id="statusMsg">Oczekiwanie na dane...</div>
+        <div id="statusMsg">Trwa łączenie...</div>
     </div>
     
     <div id="grid"></div>
@@ -180,7 +177,6 @@
     let favs = JSON.parse(localStorage.getItem('grandrp_favs')) || [];
     let renderTimeout;
 
-    // --- KOLORY ---
     function setTheme(color) {
         document.documentElement.style.setProperty('--theme', color);
         document.documentElement.style.setProperty('--theme-glow', color + '66');
@@ -189,46 +185,50 @@
     }
     document.getElementById('themePicker').addEventListener('input', (e) => setTheme(e.target.value));
 
-    // --- POBIERANIE DANYCH ---
     async function getData() {
         const select = document.getElementById('serverSelect');
         const custom = document.getElementById('customSrv');
         let sID = select.value === 'custom' ? custom.value : select.value;
         
         if (!sID) return;
-        document.getElementById('statusMsg').innerText = "Łączenie z serwerami FiveM przez Proxy...";
+        const msg = document.getElementById('statusMsg');
+        msg.innerText = "Próba ominięcia blokady FiveM (Metoda 1/2)...";
 
-        const proxies = [
-            `https://api.allorigins.win/raw?url=`,
-            `https://corsproxy.io/?`
+        // Dodajemy losowy parametr do URL, żeby ominąć cache
+        const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${sID}?t=${Date.now()}`;
+        
+        // Próbujemy kilku różnych proxy w pętli
+        const proxyUrls = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+            `https://thingproxy.freeboard.io/fetch/${targetUrl}`
         ];
 
-        let success = false;
-        for (let proxy of proxies) {
+        let data = null;
+        for (let url of proxyUrls) {
             try {
-                const url = `${proxy}${encodeURIComponent('https://servers-frontend.fivem.net/api/servers/single/' + sID)}`;
                 const res = await fetch(url);
-                if (!res.ok) continue;
-                const data = await res.json();
-
-                if (data && data.Data) {
-                    players = data.Data.players || [];
-                    totalOnlineCount = data.Data.clients || players.length;
-                    success = true;
-                    break;
+                if (res.ok) {
+                    data = await res.json();
+                    if (data && data.Data) break;
                 }
-            } catch (e) { console.error("Proxy error"); }
+            } catch (e) { 
+                console.log("Proxy " + url + " zawiodło.");
+                msg.innerText = "Metoda zawiodła, szukam innej drogi...";
+            }
         }
 
-        if (success) {
-            document.getElementById('statusMsg').innerText = "Dane zaktualizowane pomyślnie.";
+        if (data && data.Data) {
+            players = data.Data.players || [];
+            totalOnlineCount = data.Data.clients || players.length;
+            msg.innerText = "Dane pobrane pomyślnie.";
             render();
         } else {
-            document.getElementById('statusMsg').innerText = "Błąd pobierania. Serwer może być wyłączony.";
+            msg.innerText = "Błąd: FiveM blokuje zapytanie. Odśwież za chwilę.";
+            document.getElementById('counter').innerHTML = "Online: <strong style='color:#ff4444'>BŁĄD</strong>";
         }
     }
 
-    // --- RENDEROWANIE ---
     function render() {
         const sidVal = document.getElementById('sid').value;
         const nickVal = document.getElementById('snick').value.toLowerCase();
@@ -248,10 +248,8 @@
 
         counter.innerHTML = `Online: <strong>${(sidVal || nickVal) ? filtered.length : totalOnlineCount}</strong>`;
 
-        if (filtered.length === 0 && players.length > 0) {
-            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5'>Brak wyników wyszukiwania.</p>";
-        } else if (players.length === 0 && success) {
-            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5'>Serwer ukrywa listę graczy, ale licznik działa.</p>";
+        if (players.length === 0) {
+            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5; text-align:center;'>Serwer ukrywa pełną listę graczy (Privacy Mode).</p>";
         } else {
             grid.innerHTML = filtered.map(p => {
                 let isFav = favs.includes(p.id);
@@ -283,7 +281,6 @@
         getData();
     }
 
-    // Start
     const savedTheme = localStorage.getItem('grandrp_theme');
     if(savedTheme) setTheme(savedTheme);
     getData();

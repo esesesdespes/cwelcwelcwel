@@ -124,6 +124,7 @@
             overflow: hidden; 
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             transform: translateZ(0); will-change: transform, box-shadow, background;
+            /* Usunięto animację znikania (opacity/transform), aby zlikwidować migotanie! */
         }
 
         .card::before {
@@ -249,25 +250,32 @@
     }
     document.getElementById('themePicker').addEventListener('input', (e) => setTheme(e.target.value));
 
-    async function getData() {
+    // isManual = true wymusza pełne wyczyszczenie listy (np. przy zmianie serwera)
+    async function getData(isManual = false) {
         const select = document.getElementById('serverSelect');
         const custom = document.getElementById('customSrv');
         const refreshBtn = document.getElementById('refreshBtn');
         let sID = select.value === 'custom' ? custom.value : select.value;
         const title = document.getElementById('mainTitle');
+        const grid = document.getElementById('grid');
         
         if (!sID) return;
         
-        // Aktualizacja tytułu
         if(select.value === '8rml8v') title.innerText = "GrandRP Finder";
         else if(select.value === 'z75e35') title.innerText = "BetterSide Finder";
         else title.innerText = "Server Finder";
         
         refreshBtn.innerText = "...";
+
+        if (isManual) {
+            players = [];
+            totalClients = 0;
+            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.6; text-align:center;'>Łączenie z serwerem i pobieranie danych...</p>";
+        }
         
         const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${sID}`;
         
-        // Bezpośrednie zapytanie z priorytetem, potem proxy
+        // Priorytetyzacja proxy
         const sources = [
             targetUrl,
             `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
@@ -278,7 +286,9 @@
         let success = false;
         let tempPlayers = [];
         let tempClients = 0;
+        let serverIp = null; 
 
+        // ETAP 1: Odpytywanie głównego API FiveM
         for (let source of sources) {
             try {
                 const res = await fetch(source);
@@ -288,31 +298,69 @@
                 if (data && data.Data) {
                     tempPlayers = data.Data.players || [];
                     tempClients = data.Data.clients || tempPlayers.length;
-                    success = true;
                     
-                    // Jeśli mamy pełną listę, przerywamy pętlę i nie sprawdzamy reszty
-                    if (tempPlayers.length > 0) {
-                        break;
+                    // Szukanie bezpośredniego IP do Etapu 2
+                    if (data.Data.connectEndPoints && data.Data.connectEndPoints.length > 0) {
+                        serverIp = data.Data.connectEndPoints[0];
                     }
+                    
+                    success = true;
+                    break;
                 }
             } catch (e) {
-                console.log("Przeskakuje na kolejne źródło...");
+                // ciche pomijanie błędów połączenia w pętli
+            }
+        }
+
+        // ETAP 2: Omijanie zabezpieczeń (CFX Finder backdoor)
+        // Jeśli serwer raportuje graczy, ale lista jest pusta i mamy jego IP:
+        if (success && tempPlayers.length === 0 && tempClients > 0 && serverIp) {
+            
+            // Informacja wizualna na chwile, jeśli to ręczne odświeżenie
+            if(isManual) {
+                grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.6; text-align:center;'>API ukrywa graczy. Próba bezpośredniego pobrania (Direct IP)...</p>";
+            }
+            
+            const directUrl = `http://${serverIp}/players.json`;
+            const proxySources = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(directUrl)}`
+            ];
+
+            for (let proxy of proxySources) {
+                try {
+                    const directRes = await fetch(proxy);
+                    if (!directRes.ok) continue;
+                    
+                    const directData = await directRes.json();
+                    if (Array.isArray(directData) && directData.length > 0) {
+                        tempPlayers = directData; 
+                        break;
+                    }
+                } catch(e) { }
             }
         }
 
         refreshBtn.innerText = "ODŚWIEŻ";
+        
         if (success) {
-            // Unikamy zerowania listy, jeśli serwer z jakiegoś powodu ukrył/zgubił graczy na sekundę
-            if (tempPlayers.length > 0 || players.length === 0) {
+            if (isManual) {
                 players = tempPlayers;
+                totalClients = tempClients;
+            } else {
+                // Aktualizujemy tylko, gdy są nowe dane (żeby uniknąć mrugania zera)
+                if (tempPlayers.length > 0) players = tempPlayers;
+                if (tempClients > 0) totalClients = tempClients;
             }
-            totalClients = tempClients;
             render();
+        } else if (isManual) {
+             grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.8; text-align:center; color: #ff5555;'>Serwer jest offline lub wpisano błędne ID.</p>";
         }
     }
 
-    function manualRefresh() {
-        getData();
+    function manualRefresh() { 
+        getData(true); 
     }
 
     function render() {
@@ -326,7 +374,6 @@
             (nickVal ? p.name.toLowerCase().includes(nickVal) : true)
         );
 
-        // Najpierw ulubieni
         filtered.sort((a, b) => {
             let aFav = favs.includes(a.id);
             let bFav = favs.includes(b.id);
@@ -343,19 +390,26 @@
         }
 
         if (players.length === 0) {
-            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5; text-align:center;'>Brak graczy lub dane są wczytywane...</p>";
+            if (totalClients > 0) {
+                grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.8; text-align:center; color: var(--gold); padding: 20px;'><strong>Brak szczegółów:</strong> Serwer całkowicie zablokował dostęp do listy graczy (nawet przez Direct IP).</p>";
+            } else {
+                grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5; text-align:center;'>Brak graczy na serwerze.</p>";
+            }
         } else {
-            // Usunięto style odpowiedzialne za znikanie/pojawianie się (animation-delay)
             grid.innerHTML = filtered.map(p => {
                 let isFav = favs.includes(p.id);
                 let favClass = isFav ? 'active' : '';
                 let favIcon = isFav ? '★' : '☆'; 
 
+                // Dodaliśmy fallback dla nazwy i pingu, gdy korzystamy z graczy.json
+                let playerName = p.name || p.identifiers?.[0] || "Nieznany";
+                let playerPing = p.ping !== undefined ? p.ping : "?";
+
                 return `
                 <div class="card">
-                    <div class="ping-badge">${p.ping || 20}ms</div>
+                    <div class="ping-badge">${playerPing}ms</div>
                     <div class="id-box">#${p.id}</div>
-                    <div class="nick-txt" title="${p.name}">${p.name}</div>
+                    <div class="nick-txt" title="${playerName}">${playerName}</div>
                     <button class="fav-btn ${favClass}" onclick="toggleFav(${p.id})">${favIcon}</button>
                 </div>
                 `;
@@ -392,12 +446,11 @@
         const selectVal = document.getElementById('serverSelect').value;
         document.getElementById('customSrv').style.display = selectVal === 'custom' ? 'block' : 'none';
         
-        // Zapisywanie wybranego serwera do pamięci
         localStorage.setItem('grandrp_last_server', selectVal);
-        getData();
+        getData(true); 
     }
 
-    // --- START ---
+    // --- Inicjalizacja przy starcie ---
     const savedTheme = localStorage.getItem('grandrp_theme');
     if(savedTheme) setTheme(savedTheme);
 
@@ -415,9 +468,10 @@
     const savedCustom = localStorage.getItem('grandrp_custom_id');
     if(savedCustom) document.getElementById('customSrv').value = savedCustom;
 
-    getData();
-    // Odświeżanie co 60 sekund by unikać banów IP
-    setInterval(getData, 60000); 
+    getData(true); 
+    
+    // Auto-odświeżanie z isManual=false, aby nie przerywało płynności
+    setInterval(() => getData(false), 60000); 
 </script>
 </body>
 </html>

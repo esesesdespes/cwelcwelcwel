@@ -107,7 +107,7 @@
         #counter { font-size: 1.8rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
         #counter strong { color: var(--theme); text-shadow: 0 0 15px var(--theme); }
 
-        /* --- TWOJE ORYGINALNE SZKLANE KAFELKI --- */
+        /* --- SZKLANE KAFELKI --- */
         #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; width: 100%; }
         
         .card { 
@@ -123,9 +123,6 @@
             position: relative; 
             overflow: hidden; 
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            animation: fadeIn 0.4s ease forwards;
-            opacity: 0;
-            transform: translateY(10px) scale(1);
             transform: translateZ(0); will-change: transform, box-shadow, background;
         }
 
@@ -186,7 +183,6 @@
         .fav-btn:hover { color: var(--gold) !important; transform: translateY(-50%) scale(1.3) rotate(15deg) !important; }
         .fav-btn.active { color: var(--gold) !important; filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.8)); }
 
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0) scale(1); } }
         .hidden-input { display: none; }
     </style>
 </head>
@@ -271,33 +267,48 @@
         
         const targetUrl = `https://servers-frontend.fivem.net/api/servers/single/${sID}`;
         
-        // Proxy uodparniające na bany
-        const proxies = [
+        // Bezpośrednie zapytanie z priorytetem, potem proxy
+        const sources = [
+            targetUrl,
             `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
             `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
             `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
         ];
 
         let success = false;
-        for (let proxy of proxies) {
+        let tempPlayers = [];
+        let tempClients = 0;
+
+        for (let source of sources) {
             try {
-                const res = await fetch(proxy);
+                const res = await fetch(source);
                 if (!res.ok) continue; 
                 
                 const data = await res.json();
                 if (data && data.Data) {
-                    players = data.Data.players || [];
-                    totalClients = data.Data.clients || players.length;
+                    tempPlayers = data.Data.players || [];
+                    tempClients = data.Data.clients || tempPlayers.length;
                     success = true;
-                    break;
+                    
+                    // Jeśli mamy pełną listę, przerywamy pętlę i nie sprawdzamy reszty
+                    if (tempPlayers.length > 0) {
+                        break;
+                    }
                 }
             } catch (e) {
-                console.log("Przeskakuje na kolejne proxy...");
+                console.log("Przeskakuje na kolejne źródło...");
             }
         }
 
         refreshBtn.innerText = "ODŚWIEŻ";
-        if (success) render();
+        if (success) {
+            // Unikamy zerowania listy, jeśli serwer z jakiegoś powodu ukrył/zgubił graczy na sekundę
+            if (tempPlayers.length > 0 || players.length === 0) {
+                players = tempPlayers;
+            }
+            totalClients = tempClients;
+            render();
+        }
     }
 
     function manualRefresh() {
@@ -321,7 +332,7 @@
             let bFav = favs.includes(b.id);
             if (aFav && !bFav) return -1; 
             if (!aFav && bFav) return 1;  
-            return a.id - b.id;           
+            return a.id - b.id;            
         });
 
         counter.innerHTML = `Online: <strong>${(sidVal || nickVal) ? filtered.length : totalClients}</strong>`;
@@ -332,16 +343,16 @@
         }
 
         if (players.length === 0) {
-            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5; text-align:center;'>Serwer ukrywa listę graczy.</p>";
+            grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.5; text-align:center;'>Brak graczy lub dane są wczytywane...</p>";
         } else {
-            // Generowanie Twoich oryginalnych kafelków
-            grid.innerHTML = filtered.map((p, index) => {
+            // Usunięto style odpowiedzialne za znikanie/pojawianie się (animation-delay)
+            grid.innerHTML = filtered.map(p => {
                 let isFav = favs.includes(p.id);
                 let favClass = isFav ? 'active' : '';
                 let favIcon = isFav ? '★' : '☆'; 
 
                 return `
-                <div class="card" style="animation-delay: ${Math.min(index * 0.015, 0.5)}s">
+                <div class="card">
                     <div class="ping-badge">${p.ping || 20}ms</div>
                     <div class="id-box">#${p.id}</div>
                     <div class="nick-txt" title="${p.name}">${p.name}</div>

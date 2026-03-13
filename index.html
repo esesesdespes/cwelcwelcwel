@@ -115,7 +115,7 @@
         .fav-btn.active { color: var(--gold) !important; filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.8)); }
         .hidden-input { display: none; }
 
-        /* --- WIDOK LISTY SERWERÓW (Zastępuje modal) --- */
+        /* --- WIDOK LISTY SERWERÓW --- */
         #serverListView { display: none; width: 100%; animation: fadeIn 0.4s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -194,7 +194,7 @@
     <div id="serverListView" class="glass-panel">
         <div class="server-search-box">
             <span class="server-search-icon">🔍</span>
-            <input type="text" id="serverSearch" placeholder="Wpisz nazwę serwera lub kod z FiveM..." oninput="renderServerList()">
+            <input type="text" id="serverSearch" placeholder="Wpisz min. 2 znaki nazwy lub kodu serwera..." oninput="onSearchInput()">
         </div>
         <div class="server-table-container">
             <table class="server-table">
@@ -216,8 +216,7 @@
 
 <script>
     // --- STANY APLIKACJI ---
-    let currentView = 'players'; // 'players' lub 'servers'
-    
+    let currentView = 'players'; 
     let players = [];
     let totalClients = 0;
     let showList = true;
@@ -225,24 +224,11 @@
     let renderTimeout;
     let previousSelectValue = "96ky6e";
 
-    // Baza serwerów i ulubione serwery
+    // Zmienne bazy serwerów
     let allFivemServers = [];
     let isFetchingServers = false;
     let fetchError = false;
     let favServers = JSON.parse(localStorage.getItem('grandrp_favServers')) || [];
-
-    const topServersFallback = [
-        { rank: 1, name: "CoCoRP | WL:ON", code: "epk8gp", clients: "?", maxClients: "?" },
-        { rank: 2, name: "[PL] Project NXT | Whitelist OFF!", code: "zr41qp", clients: "?", maxClients: "?" },
-        { rank: 3, name: "Unwritten RP (18+) | JUST WIPED", code: "e3zdxm", clients: "?", maxClients: "?" },
-        { rank: 4, name: "^3Revolucija RolePlay ^0>>> ^3Sezona 4", code: "o4pxpj", clients: "?", maxClients: "?" },
-        { rank: 5, name: "Saga V4 Roleplay", code: "8prxj4", clients: "?", maxClients: "?" },
-        { rank: 6, name: "Rivia Fantasy Roleplay", code: "z615xy", clients: "?", maxClients: "?" },
-        { rank: 7, name: "Apollo", code: "kr19jv", clients: "?", maxClients: "?" },
-        { rank: 8, name: "TEMPO RP | +18", code: "r7q4qx", clients: "?", maxClients: "?" },
-        { rank: 9, name: "The Heights | #1 Whitelisted | 18+", code: "rxb9x7", clients: "?", maxClients: "?" },
-        { rank: 10, name: "DT-Creation", code: "ja9pg4", clients: "?", maxClients: "?" }
-    ];
 
     function hexToRgb(hex) {
         let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -269,7 +255,8 @@
             sView.style.display = 'block';
             btn.innerText = '🔙 Wróć do Graczy';
             currentView = 'servers';
-            fetchOfficialFivemServers(); // Pobierz serwery jeśli puste
+            // Nie pobieramy jeszcze serwerów - czekamy aż użytkownik coś wpisze
+            renderServerList(); 
         } else {
             pView.style.display = 'block';
             sView.style.display = 'none';
@@ -299,17 +286,24 @@
         else favServers.push(code);
         
         localStorage.setItem('grandrp_favServers', JSON.stringify(favServers)); 
-        renderServerList(); // Przeładuj listę, żeby gwiazdki wskoczyły na górę
+        renderServerList(); 
     }
 
-    // --- POBIERANIE BAZY FIVEM ---
-    async function fetchOfficialFivemServers() {
-        if (allFivemServers.length > 0 || isFetchingServers) {
-            renderServerList(); return;
-        }
+    // --- INTELIGENTNE POBIERANIE BAZY ---
+    function onSearchInput() {
+        const query = document.getElementById('serverSearch').value.trim();
         
+        // Zaczynamy szukać i pobierać tylko gdy wpisano minimum 2 znaki i baza jest jeszcze pusta
+        if (query.length >= 2 && allFivemServers.length === 0 && !isFetchingServers && !fetchError) {
+            fetchOfficialFivemServers();
+        } else {
+            renderServerList();
+        }
+    }
+
+    async function fetchOfficialFivemServers() {
         isFetchingServers = true; fetchError = false;
-        renderServerList(); 
+        renderServerList(); // Pokazuje napis "Pobieranie..."
 
         const targetUrl = 'https://servers-frontend.fivem.net/api/servers/streamRedir/';
         const proxySources = [
@@ -351,32 +345,44 @@
         } else { fetchError = true; }
 
         isFetchingServers = false;
-        renderServerList();
+        renderServerList(); // Aktualizuje tabelę już po pobraniu danych
     }
 
     function renderServerList() {
         const tbody = document.getElementById('serverTableBody');
+        const searchQuery = document.getElementById('serverSearch').value.toLowerCase().trim();
 
-        if (isFetchingServers) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 60px; color: var(--theme);">
-                <strong style="font-size: 1.2rem;">Skanowanie globalnej sieci FiveM...</strong><br><br>
-                <span style="font-size: 0.85rem; color: #888;">Trwa omijanie zabezpieczeń. Może to zająć kilka sekund.</span>
+        // 1. Oczekiwanie na zapytanie
+        if (searchQuery.length < 2) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 60px; color: #888;">
+                Wpisz co najmniej 2 znaki w wyszukiwarkę powyżej, aby rozpocząć poszukiwania...
             </td></tr>`;
             return;
         }
 
-        let displayServers = fetchError || allFivemServers.length === 0 ? topServersFallback : allFivemServers;
-        const searchQuery = document.getElementById('serverSearch').value.toLowerCase();
-        
-        let filtered = displayServers;
-        if (searchQuery) {
-            filtered = displayServers.filter(s => 
-                s.name.toLowerCase().includes(searchQuery) || 
-                (s.code && s.code.toLowerCase().includes(searchQuery))
-            );
+        // 2. Tryb ładowania
+        if (isFetchingServers) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 60px; color: var(--theme);">
+                <strong style="font-size: 1.2rem;">Pobieranie światowej bazy serwerów FiveM...</strong><br><br>
+                <span style="font-size: 0.85rem; color: #888;">Dane są pobierane tylko raz. Za chwilę wyświetlę wyniki dla "${searchQuery}"...</span>
+            </td></tr>`;
+            return;
         }
 
-        // Sortowanie: Najpierw ulubione, potem po rankingu
+        // 3. Tryb błędu
+        if (fetchError || allFivemServers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 60px; color: #ff5555;">
+                Nie udało się połączyć z API FiveM (zostało odrzucone z powodu przeciążenia). Spróbuj odświeżyć stronę za chwilę.
+            </td></tr>`;
+            return;
+        }
+
+        // 4. Wyświetlanie prawidłowych wyników
+        let filtered = allFivemServers.filter(s => 
+            s.name.toLowerCase().includes(searchQuery) || 
+            (s.code && s.code.toLowerCase().includes(searchQuery))
+        );
+
         filtered.sort((a, b) => {
             let aFav = favServers.includes(a.code);
             let bFav = favServers.includes(b.code);
@@ -385,19 +391,12 @@
             return a.rank - b.rank;
         });
 
-        const toShow = filtered.slice(0, 100);
-        let html = '';
-        
-        if (fetchError || allFivemServers.length === 0) {
-            html += `<tr><td colspan="5" style="text-align:center; padding: 15px; background: rgba(255,50,50,0.1); border-bottom: 1px solid rgba(255,50,50,0.2); color: #ff8888; font-size: 0.85rem;">
-                ⚠️ Główne serwery FiveM są przeciążone. Wyświetlam wbudowaną kopię bezpieczeństwa.
-            </td></tr>`;
-        }
+        const toShow = filtered.slice(0, 100); // Chroni przed lagami przy dużej liczbie wyników
 
-        html += toShow.map(s => {
+        let html = toShow.map(s => {
             let playersText = s.clients !== "?" ? `${s.clients}/${s.maxClients} Online` : 'Zabezpieczone API';
             let isFav = favServers.includes(s.code);
-            let safeName = s.name.replace(/'/g, "\\'"); // Zabezpieczenie nazw z apostrofami
+            let safeName = s.name.replace(/'/g, "\\'"); 
 
             return `
             <tr>
@@ -415,7 +414,10 @@
             `;
         }).join('');
 
-        if(toShow.length === 0) html += `<tr><td colspan="5" style="text-align:center; padding: 40px; color:#888;">Nie znaleziono serwera.</td></tr>`;
+        if(toShow.length === 0) {
+            html = `<tr><td colspan="5" style="text-align:center; padding: 40px; color:#888;">Nie znaleziono serwera spełniającego kryteria.</td></tr>`;
+        }
+        
         tbody.innerHTML = html;
     }
 
@@ -431,19 +433,17 @@
         localStorage.setItem('grandrp_last_server', 'custom');
         localStorage.setItem('grandrp_custom_id', code);
         
-        // Zapisanie ładnej nazwy serwera i zmiana tytułu na stronie!
-        let cleanShortName = name.replace(/\[.*?\]/g, '').trim().substring(0, 30); // Czyści tagi typu [PL] do tytułu
+        let cleanShortName = name.replace(/\[.*?\]/g, '').trim().substring(0, 30); 
         if(cleanShortName === "") cleanShortName = "Server Finder";
         
         localStorage.setItem('grandrp_custom_name', cleanShortName);
         document.getElementById('mainTitle').innerText = cleanShortName;
         
-        // Zmień z powrotem widok
         toggleMainView(); 
         getData(true); 
     }
 
-    // --- POBIERANIE GRACZY ---
+    // --- POBIERANIE GRACZY Z SERWERA ---
     async function getData(isManual = false) {
         const select = document.getElementById('serverSelect');
         const custom = document.getElementById('customSrv');
@@ -454,7 +454,6 @@
         
         if (!sID) return;
         
-        // Ustawianie tytułu strony
         if(select.value === '96ky6e') title.innerText = "GrandRP Finder";
         else if(select.value === 'z75e35') title.innerText = "BetterSide Finder";
         else {
@@ -522,7 +521,7 @@
         if (success) {
             if (isManual) { players = tempPlayers; totalClients = tempClients; } 
             else { if (tempPlayers.length > 0) players = tempPlayers; if (tempClients > 0) totalClients = tempClients; }
-            if (currentView === 'players') render(); // Renderuj tylko jeśli jesteśmy na zakładce graczy
+            if (currentView === 'players') render(); 
         } else if (isManual) {
              grid.innerHTML = "<p style='grid-column:1/-1; opacity:0.8; text-align:center; color: #ff5555;'>Serwer jest offline lub wpisano błędne ID.</p>";
         }
